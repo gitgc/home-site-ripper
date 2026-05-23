@@ -16,22 +16,29 @@ services:
     profiles:
       - rip
 
+  indexer:
+    image: node:20-slim
+    command:
+      - bash
+      - -c
+      - |
+        set -e
+        npx -y pagefind@latest --site /site --output-path /site/_pagefind --glob "${PAGEFIND_GLOB}"
+    volumes:
+      - ./site:/site
+    environment:
+      PAGEFIND_GLOB: ${PAGEFIND_GLOB:-[Ss][Cc]*/*.html}
+    profiles:
+      - index
+
   caddy:
-    build: ./caddy
+    image: caddy:2
     restart: unless-stopped
     ports:
       - "80:80"
-      - "443:443"
-      - "443:443/udp"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./site:/srv:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    environment:
-      CADDY_DNS_EMAIL: ${CADDY_DNS_EMAIL}
-      CF_AUTH_TOKEN: ${CF_AUTH_TOKEN}
-      SITE_HOSTNAME: ${SITE_HOSTNAME}
     logging:
       driver: "none"
     healthcheck:
@@ -39,7 +46,3 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-
-volumes:
-  caddy_data:
-  caddy_config:

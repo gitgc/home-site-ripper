@@ -1,11 +1,12 @@
 # home-site-ripper
 
-Mirror any website once, commit the static files to git, and serve them internally over HTTPS with Caddy.
+Mirror any website once, commit the static files to git, and serve them locally over HTTP with Caddy.
 
 ## Architecture
 
 - **ripper** — one-shot `wget` container (Docker Compose `rip` profile) that mirrors `SITE_URL` into `./site/`
-- **caddy** — serves `./site/` over HTTPS at `SITE_HOSTNAME` via Cloudflare DNS challenge TLS
+- **indexer** — one-shot [Pagefind](https://pagefind.app/) container (`index` profile) that builds a full-text search index into `./site/_pagefind/`
+- **caddy** — serves `./site/` at `http://localhost`; root serves `search.html`
 
 ## Setup
 
@@ -15,12 +16,10 @@ Mirror any website once, commit the static files to git, and serve them internal
    cp .env.example .env
    ```
 
-   | Variable          | Description                                        |
-   |-------------------|----------------------------------------------------|
-   | `CADDY_DNS_EMAIL` | Email for Let's Encrypt registration               |
-   | `CF_AUTH_TOKEN`   | Cloudflare API token (DNS:Edit for your domain)    |
-   | `SITE_HOSTNAME`   | Internal hostname to serve the mirror on           |
-   | `SITE_URL`        | URL of the site to rip                             |
+   | Variable        | Description                                                                   |
+   |-----------------|-------------------------------------------------------------------------------|
+   | `SITE_URL`      | URL of the site to rip                                                        |
+   | `PAGEFIND_GLOB` | Glob of pages to index in `./site/` (default: `[Ss][Cc]*/*.html`)             |
 
 2. Rip the site:
 
@@ -28,19 +27,21 @@ Mirror any website once, commit the static files to git, and serve them internal
    ./scripts/rip.sh
    ```
 
-3. Commit the mirror:
+3. Build the search index:
+
+   ```sh
+   ./scripts/index.sh
+   ```
+
+4. Commit the mirror and index:
 
    ```sh
    git add site/
    git commit -m "add site mirror"
    ```
 
-4. Start Caddy:
+5. Start Caddy:
 
    ```sh
    docker compose up -d
    ```
-
-## DNS
-
-Point `SITE_HOSTNAME` at your internal server via split-horizon DNS or a local override. Caddy will automatically obtain and renew a public TLS certificate via Cloudflare DNS challenge, so HTTPS works even on a private IP.

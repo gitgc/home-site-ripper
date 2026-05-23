@@ -1,10 +1,7 @@
-{
-  email {env.CADDY_DNS_EMAIL}
-  acme_dns cloudflare {env.CF_AUTH_TOKEN}
-}
-
-{$SITE_HOSTNAME} {
+:80 {
   root * /srv
-  file_server
+  file_server {
+    index search.html
+  }
   encode gzip
 }
