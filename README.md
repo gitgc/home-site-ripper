@@ -12,38 +12,38 @@ Mirror any website once, commit the static files to git, and serve them locally 
 
 1. Copy the example env file and fill in your values:
 
-   ```sh
-   cp .env.example .env
-   ```
+  ```sh
+  cp .env.example .env
+  ```
 
-   | Variable          | Description                                                                 |
-   |-------------------|-----------------------------------------------------------------------------|
-   | `SITE_URL`        | URL of the site to rip                                                      |
-   | `WGET_CUT_DIRS`   | Leading URL path segments to strip when saving files (default: 0)           |
-   | `PAGEFIND_GLOB`   | Glob of pages to index in `./site/` (default: `[Ss][Cc]*/*.html`)           |
+  | Variable          | Description                                                                 |
+  |-------------------|-----------------------------------------------------------------------------|
+  | `SITE_URL`        | URL of the site to rip                                                      |
+  | `WGET_CUT_DIRS`   | Leading URL path segments to strip when saving files (default: 0)           |
+  | `PAGEFIND_GLOB`   | Glob of pages to index in `./site/` (default: `[Ss][Cc]*/*.html`)           |
 
 2. Rip the site:
 
-   ```sh
-   ./scripts/rip.sh
-   ```
+  ```sh
+  ./scripts/rip.sh
+  ```
 
 3. Build the search index:
 
-   ```sh
-   ./scripts/index.sh
-   ```
+  ```sh
+  ./scripts/index.sh
+  ```
 
 4. (Optional) Commit the mirror and index:
 
-   ```sh
-   # remove the site and index from .gitignore first! 
-   git add site/ index/
-   git commit -m "add site mirror"
-   ```
+  ```sh
+  # remove the site and index from .gitignore first!
+  git add site/ index/
+  git commit -m "add site mirror"
+  ```
 
 5. Start Caddy to serve the site at `http://localhost`:
 
-   ```sh
-   docker compose up -d
-   ```
+  ```sh
+  ./scripts/host.sh
+  ```

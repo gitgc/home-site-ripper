@@ -5,8 +5,5 @@ cd "$(dirname "$0")/.."
 
 docker \
     compose \
-        --profile rip \
-        run \
-        --rm ripper
-
-echo "Finished ripping."
+        up \
+        --detach

@@ -4,30 +4,18 @@ services:
     environment:
       SITE_URL:
       WGET_CUT_DIRS: ${WGET_CUT_DIRS:-0}
-    command:
-      - bash
-      - -c
-      - |
-        set -e
-        apt-get update -qq && apt-get install -y -qq wget
-        wget --mirror --no-host-directories --cut-dirs="${WGET_CUT_DIRS}" \
-          --page-requisites --convert-links --adjust-extension \
-          --no-verbose --directory-prefix=/site \
-          "${SITE_URL}"
+    command: ["bash", "/scripts/wget.sh"]
     volumes:
+      - ./scripts/volume/wget.sh:/scripts/wget.sh:ro
       - ./site:/site
     profiles:
       - rip
 
   indexer:
     image: node:26-slim
-    command:
-      - bash
-      - -c
-      - |
-        set -e
-        npx -y pagefind@latest --site /site --output-path /index --glob "${PAGEFIND_GLOB}"
+    command: ["bash", "/scripts/pagefind.sh"]
     volumes:
+      - ./scripts/volume/pagefind.sh:/scripts/pagefind.sh:ro
       - ./site:/site:ro
       - ./index:/index
     environment:
