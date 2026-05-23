@@ -1,0 +1,45 @@
+services:
+  ripper:
+    image: debian:bookworm-slim
+    command:
+      - bash
+      - -c
+      - |
+        set -e
+        apt-get update -qq && apt-get install -y -qq wget
+        wget --mirror --no-host-directories --cut-dirs=1 \
+          --page-requisites --convert-links --adjust-extension \
+          --no-verbose --directory-prefix=/site \
+          "${SITE_URL}"
+    volumes:
+      - ./site:/site
+    profiles:
+      - rip
+
+  caddy:
+    build: ./caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./site:/srv:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      CADDY_DNS_EMAIL: ${CADDY_DNS_EMAIL}
+      CF_AUTH_TOKEN: ${CF_AUTH_TOKEN}
+      SITE_HOSTNAME: ${SITE_HOSTNAME}
+    logging:
+      driver: "none"
+    healthcheck:
+      test: ["CMD", "caddy", "validate", "--config", "/etc/caddy/Caddyfile"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  caddy_data:
+  caddy_config:

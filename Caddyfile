@@ -1,0 +1,10 @@
+{
+  email {env.CADDY_DNS_EMAIL}
+  acme_dns cloudflare {env.CF_AUTH_TOKEN}
+}
+
+{$SITE_HOSTNAME} {
+  root * /srv
+  file_server
+  encode gzip
+}
