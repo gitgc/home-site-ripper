@@ -1,6 +1,8 @@
 services:
   ripper:
     image: debian:bookworm-slim
+    environment:
+      SITE_URL:
     command:
       - bash
       - -c
@@ -23,9 +25,10 @@ services:
       - -c
       - |
         set -e
-        npx -y pagefind@latest --site /site --output-path /site/_pagefind --glob "${PAGEFIND_GLOB}"
+        npx -y pagefind@latest --site /site --output-path /index --glob "${PAGEFIND_GLOB}"
     volumes:
-      - ./site:/site
+      - ./site:/site:ro
+      - ./index:/index
     environment:
       PAGEFIND_GLOB: ${PAGEFIND_GLOB:-[Ss][Cc]*/*.html}
     profiles:
@@ -39,6 +42,7 @@ services:
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./site:/srv:ro
+      - ./index:/srv/_pagefind:ro
     logging:
       driver: "none"
     healthcheck:
