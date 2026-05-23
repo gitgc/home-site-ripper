@@ -16,10 +16,11 @@ Mirror any website once, commit the static files to git, and serve them locally 
    cp .env.example .env
    ```
 
-   | Variable        | Description                                                                   |
-   |-----------------|-------------------------------------------------------------------------------|
-   | `SITE_URL`      | URL of the site to rip                                                        |
-   | `PAGEFIND_GLOB` | Glob of pages to index in `./site/` (default: `[Ss][Cc]*/*.html`)             |
+   | Variable          | Description                                                                 |
+   |-------------------|-----------------------------------------------------------------------------|
+   | `SITE_URL`        | URL of the site to rip                                                      |
+   | `WGET_CUT_DIRS`   | Leading URL path segments to strip when saving files (default: 0)           |
+   | `PAGEFIND_GLOB`   | Glob of pages to index in `./site/` (default: `[Ss][Cc]*/*.html`)           |
 
 2. Rip the site:
 
@@ -33,14 +34,15 @@ Mirror any website once, commit the static files to git, and serve them locally 
    ./scripts/index.sh
    ```
 
-4. Commit the mirror and index:
+4. (Optional) Commit the mirror and index:
 
    ```sh
-   git add site/
+   # remove the site and index from .gitignore first! 
+   git add site/ index/
    git commit -m "add site mirror"
    ```
 
-5. Start Caddy:
+5. Start Caddy to serve the site at `http://localhost`:
 
    ```sh
    docker compose up -d

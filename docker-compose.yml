@@ -3,13 +3,14 @@ services:
     image: debian:bookworm-slim
     environment:
       SITE_URL:
+      WGET_CUT_DIRS: ${WGET_CUT_DIRS:-0}
     command:
       - bash
       - -c
       - |
         set -e
         apt-get update -qq && apt-get install -y -qq wget
-        wget --mirror --no-host-directories --cut-dirs=1 \
+        wget --mirror --no-host-directories --cut-dirs="${WGET_CUT_DIRS}" \
           --page-requisites --convert-links --adjust-extension \
           --no-verbose --directory-prefix=/site \
           "${SITE_URL}"
@@ -19,7 +20,7 @@ services:
       - rip
 
   indexer:
-    image: node:20-slim
+    image: node:26-slim
     command:
       - bash
       - -c
