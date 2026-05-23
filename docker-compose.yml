@@ -3,7 +3,7 @@ services:
     image: debian:bookworm-slim
     environment:
       SITE_URL:
-      WGET_CUT_DIRS: ${WGET_CUT_DIRS:-0}
+      WGET_CUT_DIRS:
     command: ["bash", "/scripts/wget.sh"]
     volumes:
       - ./scripts/volume/wget.sh:/scripts/wget.sh:ro
@@ -19,7 +19,7 @@ services:
       - ./site:/site:ro
       - ./index:/index
     environment:
-      PAGEFIND_GLOB: ${PAGEFIND_GLOB:-[Ss][Cc]*/*.html}
+      PAGEFIND_GLOB:
     profiles:
       - index
 
