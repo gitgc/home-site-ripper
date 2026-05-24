@@ -35,13 +35,18 @@ Mirror any website once, commit the static files to git, and serve them locally 
     ./scripts/clean.sh
     ```
 
-3. Build the search index:
+    Strips tracking scripts, SEO tags, and WordPress noise from the mirrored HTML.
+    Pages containing Flash (`.swf`) content automatically get a self-hosted copy of
+    [Ruffle](https://ruffle.rs) injected — downloaded once to `site/_ruffle/` on first
+    run.
+
+4. Build the search index:
 
     ```sh
     ./scripts/index.sh
     ```
 
-4. (Optional) Commit the mirror and index:
+5. (Optional) Commit the mirror and index:
 
     ```sh
     # remove the site and index from .gitignore first!
@@ -49,7 +54,7 @@ Mirror any website once, commit the static files to git, and serve them locally 
     git commit -m "add site mirror"
     ```
 
-5. Start Caddy to serve the site at `http://localhost`:
+6. Start Caddy to serve the site at `http://localhost`:
 
     ```sh
     ./scripts/host.sh

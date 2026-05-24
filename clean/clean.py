@@ -1,19 +1,59 @@
 #!/usr/bin/env python3
 """
 Strip tracking, SEO, and WordPress noise from ripped HTML files.
+Downloads Ruffle locally and injects it only on pages with Flash content.
 Requires: pip install beautifulsoup4
 
 Usage:
-    python3 scripts/cleanup.py [site_dir] [glob]
-    python3 scripts/cleanup.py site "[Ss][Cc]*/*.html"
+    python3 clean.py [site_dir] [glob]
+    python3 clean.py /site "[Ss][Cc]*/*.html"
 """
 
+import io
+import json
 import os
 import re
 import sys
+import urllib.request
+import zipfile
 from pathlib import Path
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup, Comment
+
+RUFFLE_API = 'https://api.github.com/repos/ruffle-rs/ruffle/releases/latest'
+RUFFLE_DIR = '_ruffle'
+RUFFLE_SCRIPT_SRC = f'/{RUFFLE_DIR}/ruffle.js'
+
+
+def ensure_ruffle(site_dir: Path) -> None:
+    ruffle_dir = site_dir / RUFFLE_DIR
+    if (ruffle_dir / 'ruffle.js').exists():
+        return
+
+    print('Fetching latest Ruffle release info...')
+    req = urllib.request.Request(RUFFLE_API, headers={'User-Agent': 'clean.py'})
+    with urllib.request.urlopen(req) as r:
+        release = json.loads(r.read())
+
+    asset = next(
+        a for a in release['assets']
+        if 'selfhosted' in a['name'] and a['name'].endswith('.zip')
+    )
+    print(f'Downloading Ruffle {release["tag_name"]}...')
+    with urllib.request.urlopen(asset['browser_download_url']) as r:
+        zf = zipfile.ZipFile(io.BytesIO(r.read()))
+
+    ruffle_dir.mkdir(exist_ok=True)
+    zf.extractall(ruffle_dir)
+    print(f'Ruffle installed to {ruffle_dir}')
+
+
+def has_flash(soup: BeautifulSoup) -> bool:
+    return bool(
+        soup.find('embed', type=re.compile(r'shockwave-flash', re.I)) or
+        soup.find('embed', src=re.compile(r'\.swf', re.I)) or
+        soup.find('object', data=re.compile(r'\.swf', re.I))
+    )
 
 
 def clean(html: str, source_host: str) -> tuple[str, list[str]]:
@@ -101,8 +141,22 @@ def clean(html: str, source_host: str) -> tuple[str, list[str]]:
     for tag in soup.find_all('script', src=re.compile(r'www\.google\.com/recaptcha')):
         drop(tag, 'Google reCAPTCHA script')
 
-    for tag in soup.find_all('script', src=re.compile(r'unpkg\.com/@ruffle')):
-        drop(tag, 'Ruffle Flash Player script')
+    # -- Ruffle: swap to local if page has Flash, otherwise remove -----------
+
+    ruffle_re = re.compile(r'unpkg\.com/@ruffle')
+    page_has_flash = has_flash(soup)
+
+    for tag in soup.find_all('script', src=ruffle_re):
+        if page_has_flash:
+            tag['src'] = RUFFLE_SCRIPT_SRC
+            removed.append(f'Ruffle: swapped to local {RUFFLE_SCRIPT_SRC}')
+        else:
+            drop(tag, 'Ruffle script (no Flash content)')
+
+    if page_has_flash and not soup.find('script', src=RUFFLE_SCRIPT_SRC):
+        new_tag = soup.new_tag('script', src=RUFFLE_SCRIPT_SRC)
+        soup.head.append(new_tag)
+        removed.append(f'Ruffle: injected {RUFFLE_SCRIPT_SRC}')
 
     # -- WordPress inline <style> blocks by id -------------------------------
 
@@ -154,6 +208,8 @@ def main() -> None:
 
     if not site_dir.is_dir():
         sys.exit(f'error: {site_dir} is not a directory')
+
+    ensure_ruffle(site_dir)
 
     files = sorted(site_dir.glob(glob_pat))
     if not files:
