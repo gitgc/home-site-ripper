@@ -1,5 +1,5 @@
 .env
+!site/search.html
 index/
 site/
 .DS_Store
-!site/search.html
