@@ -29,6 +29,12 @@ Mirror any website once, commit the static files to git, and serve them locally 
     ./scripts/rip.sh
     ```
 
+3. (Optional) Clean the markup:
+
+    ```sh
+    ./scripts/clean.sh
+    ```
+
 3. Build the search index:
 
     ```sh
