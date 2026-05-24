@@ -1,3 +1,4 @@
 .env
 index/
 site/
+.DS_Store

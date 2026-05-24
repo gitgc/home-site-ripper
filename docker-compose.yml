@@ -23,6 +23,23 @@ services:
     profiles:
       - index
 
+  cleaner:
+    image: python:3-slim
+    command:
+      - bash
+      - -c
+      - |
+        pip install -q -r /clean/requirements.txt
+        python /clean/clean.py /site "${PAGEFIND_GLOB}"
+    volumes:
+      - ./clean:/clean:ro
+      - ./site:/site
+    environment:
+      SITE_URL:
+      PAGEFIND_GLOB:
+    profiles:
+      - clean
+
   caddy:
     image: caddy:2
     restart: unless-stopped
