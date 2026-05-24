@@ -1,5 +1,9 @@
 :80 {
     root * /srv
+
+    @search path /search.html
+    templates @search
+
     file_server {
         index search.html
     }

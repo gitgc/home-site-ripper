@@ -49,6 +49,11 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./site:/srv:ro
       - ./index:/srv/_pagefind:ro
+      - ./html/search.html:/srv/search.html:ro
+      - ./html/browse.html:/srv/browse.html:ro
+    environment:
+      SITE_TITLE:
+      SITE_SUBTITLE:
     logging:
       driver: "none"
     healthcheck:

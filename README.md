@@ -21,7 +21,9 @@ Mirror any website once, commit the static files to git, and serve them locally 
     |-------------------|-----------------------------------------------------------------------------|
     | `SITE_URL`        | URL of the site to rip                                                      |
     | `WGET_CUT_DIRS`   | Leading URL path segments to strip when saving files (default: 0)           |
-    | `PAGEFIND_GLOB`   | Glob of pages to index in `./site/` (default: `[Ss][Cc]*/*.html`)           |
+    | `PAGEFIND_GLOB`   | Glob of pages to index in `./site/` (default: `**/*.html`)                  |
+    | `SITE_TITLE`      | Title shown in the search portal `<h1>` and `<title>`                       |
+    | `SITE_SUBTITLE`   | Optional subtitle shown below the title (omit to hide)                      |
 
 2. Rip the site:
 

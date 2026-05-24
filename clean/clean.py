@@ -141,6 +141,46 @@ def clean(html: str, source_host: str) -> tuple[str, list[str]]:
     for tag in soup.find_all('script', src=re.compile(r'www\.google\.com/recaptcha')):
         drop(tag, 'Google reCAPTCHA script')
 
+    # -- Ajax Search Lite: swap widget for a plain search form ---------------
+    # ASL needs a live WordPress AJAX backend; replace with a GET form that
+    # submits to /search.html (Pagefind), preserving the header layout.
+
+    for tag in soup.find_all('div', class_='asl_w_container'):
+        form = soup.new_tag('form', action='/search.html', method='get')
+        form['style'] = 'display:inline-flex;gap:.4rem;align-items:center'
+
+        inp = soup.new_tag('input', type='search', name='q')
+        inp['placeholder'] = 'Search manual…'
+        inp['autocomplete'] = 'off'
+        inp['style'] = (
+            'padding:.3rem .6rem;font-size:.9rem;'
+            'border:1px solid #aaa;border-radius:3px;width:14rem'
+        )
+
+        btn = soup.new_tag('button', type='submit')
+        btn['style'] = (
+            'padding:.3rem .7rem;font-size:.9rem;cursor:pointer;'
+            'border-radius:3px;border:1px solid #aaa;background:#fff'
+        )
+        btn.string = 'Search'
+
+        form.append(inp)
+        form.append(btn)
+        tag.replace_with(form)
+        removed.append('Ajax Search Lite widget → /search.html form')
+
+    # -- Sidebar widgets containing links back to the source domain ----------
+
+    for tag in soup.find_all('div', class_='widget'):
+        if tag.find('a', href=host_re):
+            drop(tag, f'sidebar widget with external {source_host} link')
+
+    # -- Empty comments block ------------------------------------------------
+
+    comments = soup.find('div', id='comments')
+    if comments and not comments.get_text(strip=True):
+        drop(comments, 'empty comments div')
+
     # -- Ruffle: swap to local if page has Flash, otherwise remove -----------
 
     ruffle_re = re.compile(r'unpkg\.com/@ruffle')
